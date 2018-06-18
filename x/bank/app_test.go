@@ -217,3 +217,9 @@ func TestMsgSendDependent(t *testing.T) {
 	// Check balances
 	mock.CheckBalance(t, mapp, addr1, sdk.Coins{sdk.NewCoin("foocoin", 42)})
 }
+
+func TestIBCSend(t *testing.T) {
+	mapp := getMockApp(t)
+
+	acc1 := 
+}

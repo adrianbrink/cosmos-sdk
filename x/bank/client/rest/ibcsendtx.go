@@ -10,13 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
-	"github.com/cosmos/cosmos-sdk/x/ibc"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 )
-
-// RegisterRoutes - Central function to define routes that get registered by the main application
-func RegisterRoutes(ctx context.CoreContext, r *mux.Router, cdc *wire.Codec, kb keys.Keybase) {
-	r.HandleFunc("/ibc/{destchain}/{address}/send", TransferRequestHandlerFn(cdc, kb, ctx)).Methods("POST")
-}
 
 type transferBody struct {
 	// Fees             sdk.Coin  `json="fees"`
@@ -67,8 +62,21 @@ func TransferRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.Core
 		}
 
 		// build message
+<<<<<<< HEAD:x/ibc/client/rest/transfer.go
 		packet := ibc.NewIBCPacket(sdk.AccAddress(info.GetPubKey().Address()), to, m.Amount, m.SrcChainID, destChainID)
 		msg := ibc.IBCTransferMsg{packet}
+=======
+		p := bank.PayloadSend{
+			SrcAddr:  info.PubKey.Address(),
+			DestAddr: to,
+			Coins:    m.Amount,
+		}
+
+		msg := bank.MsgIBCSend{
+			PayloadSend: p,
+			DestChain:   destChainID,
+		}
+>>>>>>> ed03737... Merge pull request #1481: IBC MVP Refactor:x/bank/client/rest/ibcsendtx.go
 
 		// add gas to context
 		ctx = ctx.WithGas(m.Gas)
