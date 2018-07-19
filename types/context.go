@@ -31,7 +31,6 @@ type Context struct {
 
 // create a new context
 func NewContext(ms MultiStore, header abci.Header, isCheckTx bool, logger log.Logger) Context {
-
 	c := Context{
 		Context: context.Background(),
 		pst:     newThePast(),
@@ -130,6 +129,7 @@ const (
 	contextKeyMultiStore contextKey = iota
 	contextKeyBlockHeader
 	contextKeyBlockHeight
+	contextKeyConsensusParams
 	contextKeyChainID
 	contextKeyTxBytes
 	contextKeyLogger
@@ -150,6 +150,9 @@ func (c Context) BlockHeader() abci.Header {
 }
 func (c Context) BlockHeight() int64 {
 	return c.Value(contextKeyBlockHeight).(int64)
+}
+func (c Context) ConsensusParams() abci.ConsensusParams {
+	return c.Value(contextKeyConsensusParams).(abci.ConsensusParams)
 }
 func (c Context) ChainID() string {
 	return c.Value(contextKeyChainID).(string)
@@ -176,6 +179,13 @@ func (c Context) WithBlockHeader(header abci.Header) Context {
 func (c Context) WithBlockHeight(height int64) Context {
 	return c.withValue(contextKeyBlockHeight, height)
 }
+func (c Context) WithConsensusParams(params *abci.ConsensusParams) Context {
+	if params == nil {
+		return c
+	}
+	return c.withValue(contextKeyConsensusParams, params).
+		WithGasMeter(NewGasMeter(params.TxSize.MaxGas))
+}
 func (c Context) WithChainID(chainID string) Context {
 	return c.withValue(contextKeyChainID, chainID)
 }
@@ -190,6 +200,33 @@ func (c Context) WithSigningValidators(SigningValidators []abci.SigningValidator
 }
 func (c Context) WithGasMeter(meter GasMeter) Context {
 	return c.withValue(contextKeyGasMeter, meter)
+}
+
+// Helper functions for updating ConsensusParams
+func (c Context) ConsensusParamsWithBlockMaxBytes(max int32) (res abci.ConsensusParams) {
+	res = c.ConsensusParams()
+	res.BlockSize.MaxBytes = max
+	return
+}
+func (c Context) ConsensusParamsWithBlockMaxTxs(max int32) (res abci.ConsensusParams) {
+	res = c.ConsensusParams()
+	res.BlockSize.MaxTxs = max
+	return
+}
+func (c Context) ConsensusParamsWithBlockMaxGas(max int64) (res abci.ConsensusParams) {
+	res = c.ConsensusParams()
+	res.BlockSize.MaxGas = max
+	return
+}
+func (c Context) ConsensusParamsWithTxMaxBytes(max int32) (res abci.ConsensusParams) {
+	res = c.ConsensusParams()
+	res.TxSize.MaxBytes = max
+	return
+}
+func (c Context) ConsensusParamsWithTxMaxGas(max int64) (res abci.ConsensusParams) {
+	res = c.ConsensusParams()
+	res.TxSize.MaxGas = max
+	return
 }
 
 // Cache the multistore and return a new cached context. The cached context is
