@@ -91,7 +91,8 @@ func (c relayCommander) runIBCRelay(cmd *cobra.Command, args []string) {
 }
 
 func (c relayCommander) processed(node string, srcChainID string) uint64 {
-	bz, err := query(node, ibc.GetIngressSequenceKey(srcChainID), c.ibcStore)
+	// TODO: Support receipts
+	bz, err := query(node, ibc.IncomingSequenceKey(ibc.PacketType, srcChainID), c.ibcStore)
 	if err != nil {
 		panic(err)
 	}
@@ -125,21 +126,21 @@ func (c relayCommander) loop(egressQueue lib.LinearClient, srcChainID, chainID, 
 
 		c.logger.Info("Detected IBC packet", "number", length-1)
 
-		var packet ibc.Packet
+		var data ibc.Datagram
 		for i := proc; i < length; i++ {
-			err := egressQueue.Get(i, &packet)
+			err := egressQueue.Get(i, &data)
 			if err != nil {
 				panic(err)
 			}
 
 			// TODO: add proof
-			msg := ibc.MsgReceive{Packet: packet, Relayer: c.address}
-			res, err := ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, c.cdc)
+			msg := ibc.MsgReceive{Datagram: data, Relayer: c.address}
+			err = ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, c.cdc)
 			if err != nil {
 				panic(err)
 			}
 
-			c.logger.Info("Relayed IBC packet", "number", i, "height", res.Height, "hash", res.Hash.String())
+			c.logger.Info("Relayed IBC packet", "number", i)
 		}
 	}
 }

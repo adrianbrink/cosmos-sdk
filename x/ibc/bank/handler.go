@@ -16,12 +16,14 @@ func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
 		case ibc.MsgSend:
-			switch p := msg.Payload.(type) {
-			case PayloadCoins:
-				return handlePayloadCoinsSend(ctx, k, p, msg.DestChain)
-			default:
-				return unknownRequest("Unrecognized ibc/bank payload type: ", p)
-			}
+			return k.ch.Send(func(p ibc.Payload) sdk.Result {
+				switch p := msg.Payload.(type) {
+				case PayloadCoins:
+					return handlePayloadCoinsSend(ctx, k, p)
+				default:
+					return unknownRequest("Unrecognized ibc/bank payload type: ", p)
+				}
+			}, ctx, msg)
 		case ibc.MsgReceive:
 			return k.ch.Receive(func(ctx sdk.Context, p ibc.Payload) (ibc.Payload, sdk.Result) {
 				switch p := msg.Payload.(type) {
@@ -39,8 +41,8 @@ func NewHandler(k Keeper) sdk.Handler {
 	}
 }
 
-func handlePayloadCoinsSend(ctx sdk.Context, k Keeper, p PayloadCoins, chainid string) sdk.Result {
-	tags, err := k.sendCoins(ctx, p, chainid)
+func handlePayloadCoinsSend(ctx sdk.Context, k Keeper, p PayloadCoins) sdk.Result {
+	_, tags, err := k.bk.SubtractCoins(ctx, p.SrcAddr, p.Coins)
 	if err != nil {
 		return err.Result()
 	}
@@ -48,7 +50,7 @@ func handlePayloadCoinsSend(ctx sdk.Context, k Keeper, p PayloadCoins, chainid s
 }
 
 func handlePayloadCoinsReceive(ctx sdk.Context, k Keeper, p PayloadCoins) (ibc.Payload, sdk.Result) {
-	tags, err := k.receiveCoins(ctx, p)
+	_, tags, err := k.bk.AddCoins(ctx, p.DestAddr, p.Coins)
 	if err != nil {
 		return PayloadCoinsFail{p}, err.Result()
 	}

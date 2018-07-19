@@ -10,7 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
-	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/ibc"
+	"github.com/cosmos/cosmos-sdk/x/ibc/bank"
 )
 
 type transferBody struct {
@@ -61,22 +62,24 @@ func TransferRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.Core
 			return
 		}
 
+		from, err := sdk.AccAddressFromBech32(string(info.GetPubKey().Address()))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
 		// build message
-<<<<<<< HEAD:x/ibc/client/rest/transfer.go
-		packet := ibc.NewIBCPacket(sdk.AccAddress(info.GetPubKey().Address()), to, m.Amount, m.SrcChainID, destChainID)
-		msg := ibc.IBCTransferMsg{packet}
-=======
-		p := bank.PayloadSend{
-			SrcAddr:  info.PubKey.Address(),
+		p := bank.PayloadCoins{
+			SrcAddr:  from,
 			DestAddr: to,
 			Coins:    m.Amount,
 		}
 
-		msg := bank.MsgIBCSend{
-			PayloadSend: p,
-			DestChain:   destChainID,
+		msg := ibc.MsgSend{
+			Payload:   p,
+			DestChain: destChainID,
 		}
->>>>>>> ed03737... Merge pull request #1481: IBC MVP Refactor:x/bank/client/rest/ibcsendtx.go
 
 		// add gas to context
 		ctx = ctx.WithGas(m.Gas)

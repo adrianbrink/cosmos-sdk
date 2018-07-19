@@ -55,6 +55,10 @@ func (p remoteSavePayload) DatagramType() DatagramType {
 	return PacketType
 }
 
+func (p remoteSavePayload) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
+}
+
 type remoteSaveFailPayload struct {
 	remoteSavePayload
 }
@@ -69,6 +73,10 @@ func (p remoteSaveFailPayload) ValidateBasic() sdk.Error {
 
 func (p remoteSaveFailPayload) DatagramType() DatagramType {
 	return ReceiptType
+}
+
+func (p remoteSaveFailPayload) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
 }
 
 func makeCodec() *wire.Codec {
@@ -182,7 +190,6 @@ func TestIBC(t *testing.T) {
 	saveMsg := MsgSend{
 		Payload:   payload,
 		DestChain: chainid,
-		Signer:    []byte("signer"),
 	}
 
 	tx := auth.NewStdTx([]sdk.Msg{saveMsg}, auth.NewStdFee(0), []auth.StdSignature{}, "")

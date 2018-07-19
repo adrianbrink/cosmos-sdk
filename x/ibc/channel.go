@@ -45,6 +45,7 @@ func (h Header) InverseDirection() Header {
 type Payload interface {
 	Type() string
 	ValidateBasic() sdk.Error
+	GetSigners() []sdk.AccAddress
 	DatagramType() DatagramType
 }
 

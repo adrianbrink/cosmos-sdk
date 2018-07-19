@@ -2,6 +2,8 @@ package bank
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/cosmos-sdk/x/ibc"
 )
 
 type PayloadCoins struct {
@@ -24,6 +26,18 @@ func (p PayloadCoins) ValidateBasic() sdk.Error {
 	return nil
 }
 
+func (p PayloadCoins) DatagramType() ibc.DatagramType {
+	return ibc.PacketType
+}
+
+func (p PayloadCoins) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{p.SrcAddr}
+}
+
 type PayloadCoinsFail struct {
 	PayloadCoins
+}
+
+func (p PayloadCoinsFail) DatagramType() ibc.DatagramType {
+	return ibc.ReceiptType
 }

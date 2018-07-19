@@ -14,7 +14,6 @@ import (
 type MsgSend struct {
 	Payload
 	DestChain string
-	Signer    sdk.AccAddress
 }
 
 func (msg MsgSend) GetSignBytes() []byte {
@@ -23,10 +22,6 @@ func (msg MsgSend) GetSignBytes() []byte {
 		panic(err)
 	}
 	return bz
-}
-
-func (msg MsgSend) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Signer}
 }
 
 // MsgReceive defines the message that a relayer uses to post a packet

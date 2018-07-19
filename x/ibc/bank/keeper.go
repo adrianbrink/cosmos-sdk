@@ -21,16 +21,3 @@ func NewKeeper(key sdk.StoreKey, bk bank.Keeper, ibck ibc.Keeper) Keeper {
 		ch: ibck.Channel(sdk.NewPrefixStoreGetter(key, []byte{0x00})),
 	}
 }
-
-func (k Keeper) sendCoins(ctx sdk.Context, p PayloadCoins, chainid string) (tags sdk.Tags, err sdk.Error) {
-	_, tags, err = k.bk.SubtractCoins(ctx, p.SrcAddr, p.Coins)
-	if err != nil {
-		return
-	}
-	return tags, k.ch.Send(ctx, p, chainid, DefaultCodespace)
-}
-
-func (k Keeper) receiveCoins(ctx sdk.Context, p PayloadCoins) (tags sdk.Tags, err sdk.Error) {
-	_, tags, err = k.bk.AddCoins(ctx, p.DestAddr, p.Coins)
-	return
-}
