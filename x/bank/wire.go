@@ -10,8 +10,6 @@ func RegisterWire(cdc *wire.Codec) {
 	cdc.RegisterConcrete(MsgIssue{}, "cosmos-sdk/Issue", nil)
 	cdc.RegisterConcrete(MsgIBCSend{}, "cosmos-sdk/IBCSend", nil)
 
-	cdc.RegisterConcrete(PayloadSend{}, "cosmos-sdk/ibc/Send", nil)
-	cdc.RegisterConcrete(ReceiptSendFail{}, "cosmos-sdk/ibc/SendFail", nil)
 }
 
 var msgCdc = wire.NewCodec()
