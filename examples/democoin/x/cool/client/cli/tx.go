@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -34,10 +35,16 @@ func QuizTxCmd(cdc *wire.Codec) *cobra.Command {
 				return err
 			}
 
+			account, err := queryCtx.GetAccount(from)
+			if err != nil {
+				return fmt.Errorf(`Failed to find our decode account with address: %s.
+Are you sure there has been a transaction involving it?`, from)
+			}
+
 			msg := cool.NewMsgQuiz(from, args[0])
 			name := viper.GetString(client.FlagName)
 
-			utils.SendTx(txCtx, queryCtx, from, name, []sdk.Msg{msg})
+			utils.SendTx(txCtx, queryCtx, account, name, []sdk.Msg{msg})
 			return nil
 		},
 	}

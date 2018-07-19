@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	authctx "github.com/cosmos/cosmos-sdk/x/auth/client/context"
 )
 
@@ -12,23 +13,13 @@ import (
 // the account has a proper number and sequence set. In addition, it builds and
 // signs a transaction with the supplied messages. Finally, it broadcasts the
 // signed transaction to a node.
-func SendTx(txCtx authctx.TxContext, queryCtx context.QueryContext, from []byte, name string, msgs []sdk.Msg) error {
+func SendTx(txCtx authctx.TxContext, queryCtx context.QueryContext, acc auth.Account, name string, msgs []sdk.Msg) error {
 	if txCtx.AccountNumber == 0 {
-		accNum, err := queryCtx.GetAccountNumber(from)
-		if err != nil {
-			return err
-		}
-
-		txCtx = txCtx.WithAccountNumber(accNum)
+		txCtx = txCtx.WithAccountNumber(acc.GetAccountNumber())
 	}
 
 	if txCtx.Sequence == 0 {
-		accSeq, err := queryCtx.GetAccountSequence(from)
-		if err != nil {
-			return err
-		}
-
-		txCtx = txCtx.WithSequence(accSeq)
+		txCtx = txCtx.WithSequence(acc.GetSequence())
 	}
 
 	passphrase, err := keys.GetPassphrase(name)
